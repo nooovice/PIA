@@ -2,37 +2,60 @@
 #ifndef B_SPLINE_CURVE_H
 #define B_SPLINE_CURVE_H
 
-#define B_SPLINE_CURVE_MAX_NUM 100
-#define B_SPLINE_CURVE_KNOT_VECTOR_START 0
-#define B_SPLINE_CURVE_KNOT_VECTOR_END 1
+#define B_SPLINE_CURVE_MAX_CONTROL_POINT 100
+#define B_SPLINE_CURVE_MAX_SEGMENTATION 100
+#define B_SPLINE_CURVE_MAX_RANK 10
+#define B_SPLINE_CURVE_MAX_CURVE_POINT ((B_SPLINE_CURVE_MAX_CONTROL_POINT+B_SPLINE_CURVE_MAX_RANK-1)*B_SPLINE_CURVE_MAX_SEGMENTATION+1)
+//#define B_SPLINE_CURVE_KNOT_VECTOR_START 0
+//#define B_SPLINE_CURVE_KNOT_VECTOR_END 1
 
-enum KnotIntervalType{uniform=0,nonuniform=1,halfuniform=2};
+enum KnotIntervalType{uniform=0,nonuniform=1,quasiuniform=2};
 
 class BSplineCurve
 {
 private:
     int control_point_num;
-    double* control_point;
-    int base_degree;
+    int base_rank;
     KnotIntervalType type;
+	double* control_point;
+	double* curve_point;
+    double* knot_vector;
+	bool flag_knot_vector;
+
+	void GenerateKnotVector();
+    void GenerateUniformKnotVector();
+    void GenerateCurvepoint(int segmentaion_num);
+	void CalculateCurvePoint(double *memory,int interval,double t);
+
 public:
-    BSplineCurve(int base_degree=3,KnotIntervalType type=uniform)
+    BSplineCurve(int base_rank=4,KnotIntervalType type=uniform)
     {
-        control_point=new double[B_SPLINE_CURVE_MAX_NUM*3];
+        control_point=new double[B_SPLINE_CURVE_MAX_CONTROL_POINT*3];
         control_point_num=0;
-        this->base_degree=base_degree;
+        this->base_rank=base_rank;
         this->type=type;
+		flag_knot_vector=false;
+		curve_point=new double[B_SPLINE_CURVE_MAX_CURVE_POINT*3];
     }
     ~BSplineCurve()
     {
         delete []control_point;
+		delete []curve_point;
+		if(true==flag_knot_vector) delete []knot_vector;
     }
+
     void PrintControlPoint();
     void InsertControlPoint(double x,double y,double z);
     int GetControlPointNum();
-    int GetBaseDegree();
-    KnotIntervalType GetKnotIntervalType();
-    
+
+    int GetBaseRank();
+    void SetBaseRank(int base_rank);
+
+	KnotIntervalType GetKnotIntervalType();
+	void SetKnotIntervalType(KnotIntervalType type);
+
+
+    void PrintCurve(int segmentaion_num);
 };
 
 #endif
