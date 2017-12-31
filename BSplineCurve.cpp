@@ -125,7 +125,7 @@ void BSplineCurve::GenerateCurvePoint(int segmentation_num)
     //memory allocated for iteration
     double *temp=new double[base_rank*3];
     int p=base_rank-1;
-    std::cout<<"curve point:"<<std::endl;
+    //std::cout<<"curve point:"<<std::endl;
 
     for(int i=0;i<cursor;++i)
     {
