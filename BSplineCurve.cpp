@@ -1,6 +1,7 @@
 #include"BSplineCurve.h"
 #include<iostream>
 #include<stdlib.h>
+#include<math.h>
 
 void BSplineCurve::PrintControlPoint()
 {
@@ -66,6 +67,16 @@ void BSplineCurve::GenerateKnotVector()
         this->GenerateUniformKnotVector();
         PrintKnotVector();
     }
+    else if(nonuniform==this->type && 4==base_rank)
+    {
+        this->GenerateNonUniformKnotVector();
+        PrintKnotVector();
+    }
+    else if(quasiuniform==this->type)
+    {
+        this->GenerateQuasiUniformKnotVector();
+        PrintKnotVector();
+    }
     else
     {
         std::cout<<"no match for knot vector type:"<<this->type<<std::endl;
@@ -79,12 +90,58 @@ void BSplineCurve::GenerateUniformKnotVector()
     //t[0],t[1],...,t[num]
     
     //base_rank=base_degree+1;knot_point_num=base_rank+1;
-    int num=base_rank+control_point_num-1;
-    knot_vector=new double[num+1];
+    knot_vector_num=base_rank+control_point_num;
+    knot_vector=new double[knot_vector_num];
     flag_knot_vector=true;
-    for(int i=0;i<=num;++i)
+    for(int i=0;i<base_rank+control_point_num;++i)
     {
 	knot_vector[i]=i;
+    }
+}
+
+void BSplineCurve::GenerateQuasiUniformKnotVector()
+{
+    knot_vector_num=base_rank+control_point_num;
+    knot_vector=new double[knot_vector_num];
+    flag_knot_vector=true;
+    for(int i=0;i<base_rank;++i)
+    {
+        knot_vector[i]=0;
+    }
+    for(int i=base_rank;i<=control_point_num;++i)
+    {
+        knot_vector[i]=i-base_rank+1;
+    }
+    for(int i=control_point_num+1;i<base_rank+control_point_num;++i)
+    {
+        knot_vector[i]=knot_vector[control_point_num];
+    }
+}
+
+//special case for PIA: base rank = 4
+void BSplineCurve::GenerateNonUniformKnotVector()
+{
+    knot_vector_num=base_rank+control_point_num+2;
+    knot_vector=new double[knot_vector_num];
+    flag_knot_vector=true;
+
+    double accumulator=0;
+    for(int i=0;i<base_rank;++i)
+    {
+        knot_vector[i]=0;
+    }
+    for(int i=base_rank;i<=control_point_num+2;++i)
+    {
+        accumulator+=sqrt(
+                             pow(control_point[i-base_rank+1]-control_point[i-base_rank],2)
+                            +pow(control_point[B_SPLINE_CURVE_MAX_CONTROL_POINT+i-base_rank+1]-control_point[B_SPLINE_CURVE_MAX_CONTROL_POINT+i-base_rank],2)
+                            +pow(control_point[2*B_SPLINE_CURVE_MAX_CONTROL_POINT+i-base_rank+1]-control_point[2*B_SPLINE_CURVE_MAX_CONTROL_POINT+i-base_rank],2)
+                         );
+        knot_vector[i]=accumulator;
+    }
+    for(int i=control_point_num+3;i<=base_rank+control_point_num+1;++i)
+    {
+        knot_vector[i]=knot_vector[control_point_num+2];
     }
 }
 
@@ -152,7 +209,7 @@ void BSplineCurve::GenerateCurvePoint(int segmentation_num)
 	curve_point[i+cursor]=temp[p+base_rank];
 	curve_point[i+2*cursor]=temp[p+2*base_rank];
 	/*************************************************************************************************/
-        /*************************************************************************************************/
+        /*************************************************************************************************
         //draw();
         double max=17;
         if(i>0)
@@ -164,9 +221,9 @@ void BSplineCurve::GenerateCurvePoint(int segmentation_num)
 
             glEnd();
         }
+        *************************************************************************************************/
         /*************************************************************************************************/
-        /*************************************************************************************************/
-	//std::cout<<curve_point[i]<<","<<curve_point[i+cursor]<<","<<curve_point[i+2*cursor]<<std::endl;
+	std::cout<<curve_point[i]<<","<<curve_point[i+cursor]<<","<<curve_point[i+2*cursor]<<std::endl;
     }
 
     delete []temp;
@@ -203,9 +260,8 @@ void BSplineCurve::PrintKnotVector()
 {
     if(true==this->flag_knot_vector)
     {
-        int num=this->base_rank+this->control_point_num-1;
         std::cout<<"knot vector=["<<std::endl;
-        for(int i=0;i<=num;++i)
+        for(int i=0;i<knot_vector_num;++i)
         {
             std::cout<<knot_vector[i]<<","<<std::endl;
         }
