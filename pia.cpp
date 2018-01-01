@@ -3,7 +3,7 @@
 
 int main()
 {
-    BSplineCurve bsc;
+    BSplineCurve bsc(5,quasiuniform);
     bsc.InsertControlPoint(1,1,0);
     bsc.InsertControlPoint(10,5,6);
     bsc.InsertControlPoint(3,8,7);
@@ -15,6 +15,6 @@ int main()
     bsc.PrintControlPoint();
     //std::cout<<"type of knot vector:"<<bsc.GetKnotIntervalType()<<std::endl;
     //std::cout<<"base rank:"<<bsc.GetBaseRank()<<std::endl;
-    bsc.PrintCurve(10);
+    bsc.PrintCurve(200);
     return 0;
 }
