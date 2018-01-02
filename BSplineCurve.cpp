@@ -1,7 +1,7 @@
 #include"BSplineCurve.h"
 #include<iostream>
-#include<stdlib.h>
-#include<math.h>
+#include<cstdlib>
+#include<cmath>
 
 void BSplineCurve::PrintControlPoint()
 {
@@ -25,6 +25,37 @@ void BSplineCurve::InsertControlPoint(double x,double y,double z)
     else
     {
         std::cout<<"Insertion failed."<<std::endl;
+    }
+}
+
+//counting from P1,P2,...
+void BSplineCurve::ModifyControlPoint(int position,double x,double y,double z)
+{
+    if(position<1||position>control_point_num)
+    {
+        std::cout<<"position not available"<<std::endl;
+        return;
+    }
+    else
+    {
+        control_point[position-1]=x;
+        control_point[position-1+B_SPLINE_CURVE_MAX_CONTROL_POINT]=y;
+        control_point[position-1+2*B_SPLINE_CURVE_MAX_CONTROL_POINT]=z;
+    }
+}
+
+void BSplineCurve::GetControlPoint(int position)
+{
+    if(position<1||position>control_point_num)
+    {
+        std::cout<<"position not available"<<std::endl;
+        return;
+    }
+    else
+    {
+        temp_point[0]=control_point[position-1];
+        temp_point[1]=control_point[position-1+B_SPLINE_CURVE_MAX_CONTROL_POINT];
+        temp_point[2]=control_point[position-1+2*B_SPLINE_CURVE_MAX_CONTROL_POINT];
     }
 }
 
