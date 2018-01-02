@@ -1,8 +1,9 @@
-#include"BSplineCurve.h"
+#include"PiaBSplineCurve.h"
 #include<iostream>
 
 int main()
 {
+    /*
     BSplineCurve bsc(5,quasiuniform);
     bsc.InsertControlPoint(1,1,0);
     bsc.InsertControlPoint(10,5,6);
@@ -16,5 +17,12 @@ int main()
     //std::cout<<"type of knot vector:"<<bsc.GetKnotIntervalType()<<std::endl;
     //std::cout<<"base rank:"<<bsc.GetBaseRank()<<std::endl;
     bsc.PrintCurve(200);
+    */
+
+    char file_path[]="/home/jack/Documents/codes/computer_graphics/PIA-master/1.txt";
+    PiaBSplineCurve pia;
+    pia.ReadControlPointData(file_path);
+    pia.PIA();
+
     return 0;
 }

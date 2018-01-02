@@ -21,6 +21,7 @@ private:
     double* control_point;
     double* curve_point;
     double* knot_vector;
+
     bool flag_knot_vector;
 
     void SetBaseRank(int base_rank);
@@ -34,6 +35,9 @@ private:
     void CalculateCurvePoint(double t);
 
 public:
+    double temp_point[3];
+    
+
     BSplineCurve(int base_rank=4,KnotIntervalType type=uniform)
     {
         control_point=new double[B_SPLINE_CURVE_MAX_CONTROL_POINT*3];
@@ -43,7 +47,7 @@ public:
 	flag_knot_vector=false;
 	curve_point=new double[B_SPLINE_CURVE_MAX_CURVE_POINT*3];
     }
-    ~BSplineCurve()
+    virtual ~BSplineCurve()
     {
         delete []control_point;
 	delete []curve_point;
@@ -53,6 +57,10 @@ public:
     void PrintControlPoint();
     void InsertControlPoint(double x,double y,double z);
 
+    //counting from P1,P2,...
+    void ModifyControlPoint(int position,double x,double y,double z);
+
+    void GetControlPoint(int position);
     int GetControlPointNum();
     int GetBaseRank();
     KnotIntervalType GetKnotIntervalType();
