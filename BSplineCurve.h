@@ -27,12 +27,10 @@ private:
     void SetBaseRank(int base_rank);
     void SetKnotIntervalType(KnotIntervalType type);
     
-    void GenerateKnotVector();
     void GenerateUniformKnotVector();
     void GenerateQuasiUniformKnotVector();
     void GenerateNonUniformKnotVector();
     void GenerateCurvePoint(int segmentation_num);
-    void CalculateCurvePoint(double t);
 
 public:
     double temp_point[3];
@@ -57,15 +55,20 @@ public:
     void PrintControlPoint();
     void InsertControlPoint(double x,double y,double z);
 
-    //counting from P1,P2,...
+    //counting from P0,P2,...
     void ModifyControlPoint(int position,double x,double y,double z);
-
     void GetControlPoint(int position);
+
     int GetControlPointNum();
     int GetBaseRank();
     KnotIntervalType GetKnotIntervalType();
+    int GetKnotVectorNum();
 
+    void GenerateKnotVector();
     void PrintKnotVector();
+    double GetKnotVector(int position);
+
+    void CalculateCurvePoint(double t);
     void PrintCurve(int segmentation_num);
 };
 

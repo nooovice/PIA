@@ -31,31 +31,31 @@ void BSplineCurve::InsertControlPoint(double x,double y,double z)
 //counting from P1,P2,...
 void BSplineCurve::ModifyControlPoint(int position,double x,double y,double z)
 {
-    if(position<1||position>control_point_num)
+    if(position<0||position>=control_point_num)
     {
         std::cout<<"position not available"<<std::endl;
         return;
     }
     else
     {
-        control_point[position-1]=x;
-        control_point[position-1+B_SPLINE_CURVE_MAX_CONTROL_POINT]=y;
-        control_point[position-1+2*B_SPLINE_CURVE_MAX_CONTROL_POINT]=z;
+        control_point[position]=x;
+        control_point[position+B_SPLINE_CURVE_MAX_CONTROL_POINT]=y;
+        control_point[position+2*B_SPLINE_CURVE_MAX_CONTROL_POINT]=z;
     }
 }
 
 void BSplineCurve::GetControlPoint(int position)
 {
-    if(position<1||position>control_point_num)
+    if(position<0||position>=control_point_num)
     {
         std::cout<<"position not available"<<std::endl;
         return;
     }
     else
     {
-        temp_point[0]=control_point[position-1];
-        temp_point[1]=control_point[position-1+B_SPLINE_CURVE_MAX_CONTROL_POINT];
-        temp_point[2]=control_point[position-1+2*B_SPLINE_CURVE_MAX_CONTROL_POINT];
+        temp_point[0]=control_point[position];
+        temp_point[1]=control_point[position+B_SPLINE_CURVE_MAX_CONTROL_POINT];
+        temp_point[2]=control_point[position+2*B_SPLINE_CURVE_MAX_CONTROL_POINT];
     }
 }
 
@@ -149,10 +149,10 @@ void BSplineCurve::GenerateQuasiUniformKnotVector()
     }
 }
 
-//special case for PIA: base rank = 4
+//special case for PIA: base rank = 4, there is a repeated control point both at the start and the end
 void BSplineCurve::GenerateNonUniformKnotVector()
 {
-    knot_vector_num=base_rank+control_point_num+2;
+    knot_vector_num=base_rank+control_point_num;
     knot_vector=new double[knot_vector_num];
     flag_knot_vector=true;
 
@@ -161,18 +161,18 @@ void BSplineCurve::GenerateNonUniformKnotVector()
     {
         knot_vector[i]=0;
     }
-    for(int i=base_rank;i<=control_point_num+2;++i)
+    for(int i=base_rank;i<=control_point_num;++i)
     {
         accumulator+=sqrt(
-                             pow(control_point[i-base_rank+1]-control_point[i-base_rank],2)
-                            +pow(control_point[B_SPLINE_CURVE_MAX_CONTROL_POINT+i-base_rank+1]-control_point[B_SPLINE_CURVE_MAX_CONTROL_POINT+i-base_rank],2)
-                            +pow(control_point[2*B_SPLINE_CURVE_MAX_CONTROL_POINT+i-base_rank+1]-control_point[2*B_SPLINE_CURVE_MAX_CONTROL_POINT+i-base_rank],2)
+                             pow(control_point[i-base_rank+2]-control_point[i-base_rank+1],2)
+                            +pow(control_point[B_SPLINE_CURVE_MAX_CONTROL_POINT+i-base_rank+2]-control_point[B_SPLINE_CURVE_MAX_CONTROL_POINT+i-base_rank+1],2)
+                            +pow(control_point[2*B_SPLINE_CURVE_MAX_CONTROL_POINT+i-base_rank+2]-control_point[2*B_SPLINE_CURVE_MAX_CONTROL_POINT+i-base_rank+1],2)
                          );
         knot_vector[i]=accumulator;
     }
-    for(int i=control_point_num+3;i<=base_rank+control_point_num+1;++i)
+    for(int i=control_point_num+1;i<=base_rank+control_point_num-1;++i)
     {
-        knot_vector[i]=knot_vector[control_point_num+2];
+        knot_vector[i]=knot_vector[control_point_num];
     }
 }
 
@@ -258,6 +258,7 @@ void BSplineCurve::GenerateCurvePoint(int segmentation_num)
     }
 
     delete []temp;
+    temp=NULL;
 }
 
 void BSplineCurve::PrintCurve(int segmentation_num)
@@ -273,18 +274,49 @@ void BSplineCurve::PrintCurve(int segmentation_num)
 	}
 
 	this->GenerateCurvePoint(segmentation_num);
+        std::cout<<"print curve***"<<std::endl;
 }
 
 void BSplineCurve::CalculateCurvePoint(double t)
 {
-/*  if(true!=flag_knot_vector)
+    if(true!=flag_knot_vector)
     {
-		std::cout<<"must generate curve vector before calculating curve points"<<std::endl;
-		return;
-	}*/
+	std::cout<<"must generate curve vector before calculating curve points"<<std::endl;
+	exit(0);
+    }
+    int num=GetKnotVectorNum();
+    if(t<knot_vector[0]||t>knot_vector[num-1])
+    {
+        std::cout<<"out of range"<<std::endl;
+        return;
+    }
+    int k=0;
+    while(!(t>=knot_vector[k]&&t<knot_vector[k+1]))
+    {
+        ++k;
+    }
+    std::cout<<"k="<<k<<std::endl;
+    std::cin.get();
 
+    double *temp=new double[base_rank*3];
+    int p=base_rank-1;
 
+    for(int r=1;r<=p;++r)
+    {
+        for(int j=p;j>=r;--j)
+	{
+            double alpha=(t-knot_vector[j+k-p])/(knot_vector[j+1+k-r]-knot_vector[j+k-p]);
+            temp[j]=(1-alpha)*temp[j-1]+alpha*temp[j];
+            temp[j+base_rank]=(1-alpha)*temp[j-1+base_rank]+alpha*temp[j+base_rank];
+	    temp[j+2*base_rank]=(1-alpha)*temp[j-1+2*base_rank]+alpha*temp[j+2*base_rank];
+	}
+    }
+    std::cout<<"temp[p]:"<<temp[p]<<","<<temp[p+base_rank]<<","<<temp[p+2*base_rank]<<std::endl;
+    std::cin.get();
 
+    temp_point[0]=temp[p];
+    temp_point[1]=temp[p+base_rank];
+    temp_point[2]=temp[p+2*base_rank];
 }
 
 void BSplineCurve::PrintKnotVector()
@@ -300,5 +332,35 @@ void BSplineCurve::PrintKnotVector()
     }
     else
         std::cout<<"have not generated knot vector yet"<<std::endl;
+}
+
+int BSplineCurve::GetKnotVectorNum()
+{
+    if(true==flag_knot_vector)
+        return knot_vector_num;
+    else
+    {
+        std::cout<<"have not generated knot vector yet"<<std::endl;
+        exit(0);
+    }
+}
+
+double BSplineCurve::GetKnotVector(int position)
+{
+    if(true==flag_knot_vector)
+    {
+        if(position<0||position>=knot_vector_num)
+        {
+            std::cout<<"out of range"<<std::endl;
+            exit(0);
+        }
+        else
+            return knot_vector[position];
+    }
+    else
+    {
+        std::cout<<"have not generated knot vector yet"<<std::endl;
+        exit(0);
+    }
 }
 
